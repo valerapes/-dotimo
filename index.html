@@ -35,7 +35,53 @@
     <button id = colorBtn>Поменять цвет</button>
     <button id = detachBtn>Разъеденить кубы</button>
     <script>
+const square1 = document.getElementById("square1")
+const square2 = document.getElementById("square2")
+const container = document.getElementById("container")
 
+const colorBtn = document.getElementById("colorBtn")
+const detachBtn = document.getElementById("detachBtn")
+
+let activeSquare = null;
+let startX = 0, startY = 0;
+let squareLeft = 0, SquareTop = 0;
+
+function makeDraggable (square){
+    square.addEventListener ("mousedown", (event) =>{
+        event.stopProrogantion()
+        activeSquare = square;
+        startX = event.clientX;
+        startY = event.clientY;
+
+        const rect = square.getBoundingClientRect();
+        squareLeft =rect.left;
+        squareTop = rect.top;
+
+        document.addEventListener("mosemove", onMouseMove);
+        document.addEventListener("mouseup", onMouseUp);
+
+        square.style.cursor = "grabbing";
+    });
+}
+
+function onMouseMove(event){
+    if (!activeSquare) return;
+    const dx = event.clientX - startX;
+    const dy = event.clientY - startY;
+    activeSquare.style.left = "${squareLeft + dx}px";
+    activeSquare.style.top = "{squareTof + dx}px";
+}
+
+function onMouseUp(){
+    if (!activeSquare) return;
+    activeSquare.style.cursor = "grab";
+    activeSquare = null;
+    document.removeEventListener("mousemove", onMouseMove);
+    document.removeEventListener("mouseup", onMouseUp);
+}
+
+makeDraggable(square1);
+makeDraggable(square2);
     </script>
 </body>
 </html>
