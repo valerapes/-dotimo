@@ -101,7 +101,120 @@
     <div class = controls>
         <button id = detachBtn>Разъеденить кубы</button>
         <input type = "color" id = "colorPickerSquare" value="#ff0000">
-        <script src="script.js"></script>
+        <script>
+            const square1 = document.getElementById("square1");
+const square2 = document.getElementById("square2");
+const container = document.getElementById("container");
+
+const colorBtn = document.getElementById("colorBtn");
+const detachBtn = document.getElementById("detachBtn");
+
+let selectedSquare = null;
+
+function makeDraggable (square){
+    let isDragging = false;
+    let startX = 0, startY = 0;
+    let startLeft = 0, startTop = 0;
+
+    function onMouseMove(event){
+        if (!isDragging) return;
+
+        const dx = event.clientX - startX;
+        const dy = event.clientY - startY;
+
+        let newLeft = startLeft + dx;
+        let newTop = startTop + dy;
+
+        const containerRect = container.getBoundingClientRect();
+        const squareRect = square.getBoundingClientRect();
+
+        const minLeft = 0;
+        const maxLeft = containerRect.width - squareRect.width;
+
+        const minTop = 0;
+        const maxTop = containerRect.height - squareRect.height;
+
+        newLeft = Math.min(Math.max(newLeft, minLeft), maxLeft);
+        newTop = Math.min(Math.max(newTop, minTop), maxTop);
+
+        square.style.left = newLeft + "px";
+        square.style.top = newTop + "px";
+    }
+
+    function onMouseUp(){
+        if (!isDragging) return;
+
+        isDragging = false;
+        square.style.cursor = "grab";
+
+        document.removeEventListener("mousemove", onMouseMove);
+        document.removeEventListener("mouseup", onMouseUp);
+    }
+
+    function onMouseDown(event){
+
+        selectSquare(square);
+
+        event.preventDefault();
+        event.stopPropagation();
+        isDragging = true;
+
+        startX = event.clientX;
+        startY = event.clientY;
+
+        const left = getComputedStyle(square).left;
+        const top = getComputedStyle(square).top;
+        startLeft = parseFloat(left) || 0;
+        startTop = parseFloat(top) || 0;
+
+        square.style.cursor = "grabbing";
+
+        document.addEventListener("mousemove", onMouseMove);
+        document.addEventListener("mouseup", onMouseUp);
+    }
+        
+    square.addEventListener("mousedown", onMouseDown)
+}
+
+makeDraggable(square1);
+makeDraggable(square2);
+
+function selectSquare(square){
+    square1.style.boxShadow = "inset 0 0 0 2px rgba(30, 30, 30, 1)";
+    square2.style.boxShadow = "inset 0 0 0 2px rgba(30, 30, 30, 1)";
+
+    if (square){
+        square.style.boxShadow = "inset 0 0 0 3px black, 0 0 10px rgba(0,0,255,0.5)";
+        selectedSquare = square;
+    }
+    else {
+        selectedSquare = null;
+    }
+}
+
+square1.addEventListener("click", (e) => {
+    e.stopPropagation();
+    selectSquare(square1);
+})
+
+square2.addEventListener("click", (e) => {
+    e.stopPropagation();
+    selectSquare(square2);
+})
+
+container.addEventListener("click", () => {
+    selectSquare(null);
+})
+
+colorBtn.addEventListener("click", ()=>{
+    if (selectedSquare){
+        const newColor = colorPicker.value;
+        selectedSquare.style.backgroundColor = newColor;
+    } else {
+        alert("Сначала выдели квадрат")
+    }
+})
+        </script>
     </div>
 </body>
 </html>
