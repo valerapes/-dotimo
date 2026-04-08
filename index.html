@@ -105,9 +105,11 @@ const square1 = document.getElementById("square1");
 const square2 = document.getElementById("square2");
 const container = document.getElementById("container");
 const detachBtn = document.getElementById("detachBtn");
+const SNAP_DISTANCE = 100;
 
 let selectedSquare = null;
 let isStuck = false;
+let group = null;
 
 function makeDraggable (square){
     let isDragging = false;
@@ -151,12 +153,28 @@ function makeDraggable (square){
 
                 group.follower.style.left = followerLeft + "px";
                 group.follower.style.top  = followerTop + "px";
+            } else if(square === group.follower){
+                const leaderLeft = newLeft - group.offsetX;
+                const leaderTop  = newTop - group.offsetY;
+
+                group.leader.style.left = leaderLeft + "px";
+                group.leader.style.top  = leaderTop + "px";
             }
-        }
-        if(!group){
+        } else {
             tryStick(square, otherSquare);
         }
     }
+
+function tryStick(a,b){
+
+    if(isStuck) return;
+
+    const d = distance(getCenter(a), getCenter(b));
+
+    if (d < SNAP_DISTANCE){
+        stickSquares(a, b);
+    }
+}
 
     function onMouseUp(){
         if (!isDragging) return;
@@ -203,21 +221,6 @@ function getCenter(square){
 function distance(a, b){
     return Math.hypot(a.x - b.x, a.y - b.y);
 }
-
-const SNAP_DISTANCE = 100;
-
-function tryStick(a,b){
-
-    if(isStuck) return;
-
-    const d = distance(getCenter(a), getCenter(b));
-
-    if (d < SNAP_DISTANCE){
-        stickSquares(a, b);
-    }
-}
-
-let group = null;
 
 function stickSquares(a,b){
 
