@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Тестовая задача</title>
     <meta charset="utf-8">
     <style>
-        body{
+        body {
             margin: 0;
             min-height: 100vh;
             display: flex;
@@ -14,15 +15,17 @@
             background-color: #9c9c9c;
             font-family: Arial, sans-serif;
         }
-        #container{
+
+        #container {
             position: relative;
             width: 800px;
             height: 600px;
-            box-shadow: 0 0 5px 5px  #5a5959;
+            box-shadow: 0 0 5px 5px #5a5959;
             background-color: white;
             overflow: hidden;
         }
-        .square{
+
+        .square {
             position: absolute;
             width: 80px;
             height: 80px;
@@ -30,20 +33,24 @@
             user-select: none;
             box-shadow: inset 0 0 0 2px rgba(30, 30, 30, 1);
         }
-        .square:active{
+
+        .square:active {
             cursor: grabbing;
         }
-        #square1{
+
+        #square1 {
             background: rgb(229, 48, 48);
             top: 200px;
             left: 150px;
         }
-        #square2{
+
+        #square2 {
             background: rgb(136, 71, 197);
             top: 200px;
             left: 550px;
         }
-        .controls{
+
+        .controls {
             margin-top: 20px;
             display: flex;
             gap: 15px;
@@ -53,7 +60,8 @@
             border-radius: 8px;
             box-shadow: inset 0 0 4px 4px rgba(0, 0, 0, 0.4);
         }
-        button{
+
+        button {
             background: #f8f9fa;
             color: #495057;
             padding: 8px 20px;
@@ -63,14 +71,17 @@
             border-radius: 6px;
             transition: all 0.2s;
         }
-        button:hover{
-            background:#e9ecef;
+
+        button:hover {
+            background: #e9ecef;
             border-color: #adb5bd;
         }
-        button:active{
+
+        button:active {
             background: #dee2e6;
         }
-        input[type="color"]{
+
+        input[type="color"] {
             width: 37px;
             height: 37px;
             cursor: pointer;
@@ -78,249 +89,259 @@
             padding: 0;
             background: nane;
         }
-        input[type="color"]::webkit-color-swatch-wrapper{
+
+        input[type="color"]::webkit-color-swatch-wrapper {
             padding: 0;
         }
-        input[type="color"]::webkit-color-swatch{
+
+        input[type="color"]::webkit-color-swatch {
             border: 2px solid #ddd;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-        input[type="color"]::-moz-color-swatch{
+
+        input[type="color"]::-moz-color-swatch {
             border: 2px solid #ddd;
-            border-radius: 8px;  
+            border-radius: 8px;
         }
     </style>
 </head>
+
 <body>
-    <div id = "container">
-        <div id = "square1" class = "square"></div>
-        <div id = "square2" class = "square"></div>
+    <div id="container">
+        <div id="square1" class="square"></div>
+        <div id="square2" class="square"></div>
     </div>
-    <div class = controls>
-        <button id = detachBtn>Разделить кубы</button>
-        <input type = "color" id = "colorPickerSquare" value="#ff0000">
+    <div class=controls>
+        <button id=detachBtn>Разделить кубы</button>
+        <input type="color" id="colorPickerSquare" value="#ff0000">
         <script>
-const square1 = document.getElementById("square1");
-const square2 = document.getElementById("square2");
-const container = document.getElementById("container");
-const detachBtn = document.getElementById("detachBtn");
-const SNAP_DISTANCE = 100;
+            const square1 = document.getElementById("square1");
+            const square2 = document.getElementById("square2");
+            const container = document.getElementById("container");
+            const detachBtn = document.getElementById("detachBtn");
+            const SNAP_DISTANCE = 100;
 
-let selectedSquare = null;
-let isStuck = false;
-let group = null;
+            let selectedSquare = null;
+            let isStuck = false;
+            let group = null;
 
-function makeDraggable (square){
-    let isDragging = false;
-    let startX = 0, startY = 0;
-    let startLeft = 0, startTop = 0;
+            function makeDraggable(square) {
+                let isDragging = false;
+                let startX = 0, startY = 0;
+                let startLeft = 0, startTop = 0;
 
-    function getOtherSquare(){
-        return (square === square1) ? square2 : square1;
-    }
+                function getOtherSquare() {
+                    return (square === square1) ? square2 : square1;
+                }
 
-    function onMouseMove(event){
-        if (!isDragging) return;
+                function onMouseMove(event) {
+                    if (!isDragging) return;
 
-        const dx = event.clientX - startX;
-        const dy = event.clientY - startY;
+                    const dx = event.clientX - startX;
+                    const dy = event.clientY - startY;
 
-        let newLeft = startLeft + dx;
-        let newTop = startTop + dy;
+                    let newLeft = startLeft + dx;
+                    let newTop = startTop + dy;
 
-        const containerRect = container.getBoundingClientRect();
-        const squareRect = square.getBoundingClientRect();
+                    const containerRect = container.getBoundingClientRect();
+                    const squareRect = square.getBoundingClientRect();
 
-        const minLeft = 0;
-        const maxLeft = containerRect.width - squareRect.width;
-        const minTop = 0;
-        const maxTop = containerRect.height - squareRect.height;
+                    const minLeft = 0;
+                    const maxLeft = containerRect.width - squareRect.width;
+                    const minTop = 0;
+                    const maxTop = containerRect.height - squareRect.height;
 
-        newLeft = Math.min(Math.max(newLeft, minLeft), maxLeft);
-        newTop = Math.min(Math.max(newTop, minTop), maxTop);
+                    newLeft = Math.min(Math.max(newLeft, minLeft), maxLeft);
+                    newTop = Math.min(Math.max(newTop, minTop), maxTop);
 
-        square.style.left = newLeft + "px";
-        square.style.top = newTop + "px";
+                    square.style.left = newLeft + "px";
+                    square.style.top = newTop + "px";
 
-        const otherSquare = getOtherSquare();
+                    const otherSquare = getOtherSquare();
 
-        if (group){
-            if(square === group.leader){
+                    if (!group) {
+                        tryStick(square, otherSquare);
+                        return
+                    }
+                    
+                    if (square === group.leader) {
 
-                const followerLeft = newLeft + group.offsetX;
-                const followerTop  = newTop + group.offsetY;
+                        const followerLeft = newLeft + group.offsetX;
+                        const followerTop = newTop + group.offsetY;
 
-                group.follower.style.left = followerLeft + "px";
-                group.follower.style.top  = followerTop + "px";
-            } else if(square === group.follower){
-                const leaderLeft = newLeft - group.offsetX;
-                const leaderTop  = newTop - group.offsetY;
+                        group.follower.style.left = followerLeft + "px";
+                        group.follower.style.top = followerTop + "px";
 
-                group.leader.style.left = leaderLeft + "px";
-                group.leader.style.top  = leaderTop + "px";
+                    } else if (square === group.follower) {
+
+                        const leaderLeft = newLeft - group.offsetX;
+                        const leaderTop = newTop - group.offsetY;
+
+                        group.leader.style.left = leaderLeft + "px";
+                        group.leader.style.top = leaderTop + "px";
+                    }
+
+                }
+
+                function tryStick(a, b) {
+
+                    if (isStuck) return;
+
+                    const d = distance(getCenter(a), getCenter(b));
+
+                    if (d < SNAP_DISTANCE) {
+                        stickSquares(a, b);
+                    }
+                }
+
+                function onMouseDown(event) {
+                    selectSquare(square);
+                    event.preventDefault();
+                    event.stopPropagation();
+                    isDragging = true;
+
+                    startX = event.clientX;
+                    startY = event.clientY;
+
+                    const left = getComputedStyle(square).left;
+                    const top = getComputedStyle(square).top;
+                    startLeft = parseFloat(left) || 0;
+                    startTop = parseFloat(top) || 0;
+
+                    square.style.cursor = "grabbing";
+
+                    document.addEventListener("mousemove", onMouseMove);
+                    document.addEventListener("mouseup", onMouseUp);
+                }
+
+                function onMouseUp() {
+                    if (!isDragging) return;
+                    isDragging = false;
+                    square.style.cursor = "grab";
+                    document.removeEventListener("mousemove", onMouseMove);
+                    document.removeEventListener("mouseup", onMouseUp);
+                }
+
+                square.removeEventListener("mousedown", square._oldMouseDown);
+                square.addEventListener("mousedown", onMouseDown);
+                square._oldMouseDown = onMouseDown;
             }
-        } else {
-            tryStick(square, otherSquare);
-        }
-    }
 
-function tryStick(a,b){
+            function getCenter(square) {
+                const left = parseFloat(square.style.left);
+                const top = parseFloat(square.style.top);
 
-    if(isStuck) return;
+                return {
+                    x: left + 40,
+                    y: top + 40
+                };
+            }
 
-    const d = distance(getCenter(a), getCenter(b));
+            function distance(a, b) {
+                return Math.hypot(a.x - b.x, a.y - b.y);
+            }
 
-    if (d < SNAP_DISTANCE){
-        stickSquares(a, b);
-    }
-}
+            function stickSquares(a, b) {
 
-    function onMouseUp(){
-        if (!isDragging) return;
-        isDragging = false;
-        square.style.cursor = "grab";
-        document.removeEventListener("mousemove", onMouseMove);
-        document.removeEventListener("mouseup", onMouseUp);
-    }
+                const aLeft = parseFloat(a.style.left);
+                const aTop = parseFloat(a.style.top);
 
-    function onMouseDown(event){
-        selectSquare(square);
-        event.preventDefault();
-        event.stopPropagation();
-        isDragging = true;
+                const bLeft = parseFloat(b.style.left);
+                const bTop = parseFloat(b.style.top);
 
-        startX = event.clientX;
-        startY = event.clientY;
+                const dx = bLeft - aLeft;
+                const dy = bTop - aTop;
 
-        const left = getComputedStyle(square).left;
-        const top = getComputedStyle(square).top;
-        startLeft = parseFloat(left) || 0;
-        startTop = parseFloat(top) || 0;
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    b.style.left = (aLeft + Math.sign(dx) * 80) + "px";
+                    b.style.top = aTop + "px";
+                } else {
+                    b.style.top = (aTop + Math.sign(dy) * 80) + "px";
+                    b.style.left = aLeft + "px";
+                }
 
-        square.style.cursor = "grabbing";
+                group = {
+                    leader: a,
+                    follower: b,
+                    offsetX: parseFloat(b.style.left) - aLeft,
+                    offsetY: parseFloat(b.style.top) - aTop
+                };
 
-        document.addEventListener("mousemove", onMouseMove);
-        document.addEventListener("mouseup", onMouseUp);
-    }
-        
-    square.removeEventListener("mousedown", square._oldMouseDown);
-    square.addEventListener("mousedown", onMouseDown);
-    square._oldMouseDown = onMouseDown;
-}
+                isStuck = true;
+            }
 
-function getCenter(square){
-    const left = parseFloat(square.style.left);
-    const top = parseFloat(square.style.top);
+            function selectSquare(square) {
+                square1.style.boxShadow = "inset 0 0 0 2px rgba(30, 30, 30, 1)";
+                square2.style.boxShadow = "inset 0 0 0 2px rgba(30, 30, 30, 1)";
 
-    return {
-        x: left + 40,
-        y: top + 40
-    };
-}
-function distance(a, b){
-    return Math.hypot(a.x - b.x, a.y - b.y);
-}
+                if (square) {
+                    square.style.boxShadow = "inset 0 0 0 3px black, 0 0 10px rgba(0,0,255,0.5)";
+                    selectedSquare = square;
+                }
+                else {
+                    selectedSquare = null;
+                }
+            }
 
-function stickSquares(a,b){
+            function detachSquares() {
 
-    const aLeft = parseFloat(a.style.left);
-    const aTop = parseFloat(a.style.top);
+                if (!group) return;
 
-    const bLeft = parseFloat(b.style.left);
-    const bTop = parseFloat(b.style.top);
+                const { leader, follower } = group;
 
-    const dx = bLeft - aLeft;
-    const dy = bTop - aTop;
+                group = null;
+                isStuck = false;
 
-    if(Math.abs(dx) > Math.abs(dy)){
-        b.style.left = (aLeft + Math.sign(dx)*80) + "px";
-        b.style.top = aTop + "px";
-    }else{
-        b.style.top = (aTop + Math.sign(dy)*80) + "px";
-        b.style.left = aLeft + "px";
-    }
+                const angle = Math.random() * Math.PI * 2;
 
-    group = {
-        leader:a,
-        follower:b,
-        offsetX: parseFloat(b.style.left)-aLeft,
-        offsetY: parseFloat(b.style.top)-aTop
-    };
+                const distance = 120;
 
-    isStuck = true;
-}
+                leader.style.left =
+                    parseFloat(leader.style.left) +
+                    Math.cos(angle) * distance + "px";
 
-function selectSquare(square){
-    square1.style.boxShadow = "inset 0 0 0 2px rgba(30, 30, 30, 1)";
-    square2.style.boxShadow = "inset 0 0 0 2px rgba(30, 30, 30, 1)";
+                leader.style.top =
+                    parseFloat(leader.style.top) +
+                    Math.sin(angle) * distance + "px";
 
-    if (square){
-        square.style.boxShadow = "inset 0 0 0 3px black, 0 0 10px rgba(0,0,255,0.5)";
-        selectedSquare = square;
-    }
-    else {
-        selectedSquare = null;
-    }
-}
+                follower.style.left =
+                    parseFloat(follower.style.left) -
+                    Math.cos(angle) * distance + "px";
 
-function detachSquares(){
+                follower.style.top =
+                    parseFloat(follower.style.top) -
+                    Math.sin(angle) * distance + "px";
+            }
 
-    if(!group) return;
+            makeDraggable(square1);
+            makeDraggable(square2);
 
-    const {leader, follower} = group;
+            square1.addEventListener("click", (e) => {
+                e.stopPropagation();
+                selectSquare(square1);
+            })
 
-    group = null;
-    isStuck = false;
+            square2.addEventListener("click", (e) => {
+                e.stopPropagation();
+                selectSquare(square2);
+            })
 
-    const angle = Math.random()*Math.PI*2;
+            window.addEventListener("click", () => {
+                selectSquare(null);
+            })
 
-    const distance = 120;
+            document.getElementById("colorPickerSquare").addEventListener("input", (e) => {
+                if (selectedSquare) {
+                    selectedSquare.style.backgroundColor = e.target.value;
+                } else {
+                    alert("Сначала выдели квадрат");
+                }
+            });
 
-    leader.style.left =
-        parseFloat(leader.style.left) +
-        Math.cos(angle)*distance + "px";
-
-    leader.style.top =
-        parseFloat(leader.style.top) +
-        Math.sin(angle)*distance + "px";
-
-    follower.style.left =
-        parseFloat(follower.style.left) -
-        Math.cos(angle)*distance + "px";
-
-    follower.style.top =
-        parseFloat(follower.style.top) -
-        Math.sin(angle)*distance + "px";
-}
-
-makeDraggable(square1);
-makeDraggable(square2);
-
-square1.addEventListener("click", (e) => {
-    e.stopPropagation();
-    selectSquare(square1);
-})
-
-square2.addEventListener("click", (e) => {
-    e.stopPropagation();
-    selectSquare(square2);
-})
-
-container.addEventListener("click", () => {
-    selectSquare(null);
-})
-
-document.getElementById("colorPickerSquare").addEventListener("input", (e)=>{
-    if (selectedSquare){
-        selectedSquare.style.backgroundColor = e.target.value;
-    } else {
-        alert("Сначала выдели квадрат");
-    }
-});
-
-detachBtn.addEventListener("click", detachSquares)
+            detachBtn.addEventListener("click", detachSquares)
         </script>
     </div>
 </body>
+
 </html>
