@@ -3,7 +3,6 @@
 <head>
     <title>Тестовая задача</title>
     <meta charset="utf-8">
-    <title>LCD1602 конвертер</title>
     <style>
         body{
             margin: 0;
@@ -18,7 +17,7 @@
         #container{
             position: relative;
             width: 800px;
-            height: 500px;
+            height: 600px;
             box-shadow: 0 0 5px 5px  #5a5959;
             background-color: white;
             overflow: hidden;
@@ -99,22 +98,25 @@
         <div id = "square2" class = "square"></div>
     </div>
     <div class = controls>
-        <button id = detachBtn>Разъеденить кубы</button>
+        <button id = detachBtn>Разделить кубы</button>
         <input type = "color" id = "colorPickerSquare" value="#ff0000">
         <script>
-            const square1 = document.getElementById("square1");
+const square1 = document.getElementById("square1");
 const square2 = document.getElementById("square2");
 const container = document.getElementById("container");
-
-const colorBtn = document.getElementById("colorBtn");
 const detachBtn = document.getElementById("detachBtn");
 
 let selectedSquare = null;
+let isStuck = false;
 
 function makeDraggable (square){
     let isDragging = false;
     let startX = 0, startY = 0;
     let startLeft = 0, startTop = 0;
+
+    function getOtherSquare(){
+        return (square === square1) ? square2 : square1;
+    }
 
     function onMouseMove(event){
         if (!isDragging) return;
@@ -130,7 +132,6 @@ function makeDraggable (square){
 
         const minLeft = 0;
         const maxLeft = containerRect.width - squareRect.width;
-
         const minTop = 0;
         const maxTop = containerRect.height - squareRect.height;
 
@@ -139,22 +140,34 @@ function makeDraggable (square){
 
         square.style.left = newLeft + "px";
         square.style.top = newTop + "px";
+
+        const otherSquare = getOtherSquare();
+
+        if (group){
+            if(square === group.leader){
+
+                const followerLeft = newLeft + group.offsetX;
+                const followerTop  = newTop + group.offsetY;
+
+                group.follower.style.left = followerLeft + "px";
+                group.follower.style.top  = followerTop + "px";
+            }
+        }
+        if(!group){
+            tryStick(square, otherSquare);
+        }
     }
 
     function onMouseUp(){
         if (!isDragging) return;
-
         isDragging = false;
         square.style.cursor = "grab";
-
         document.removeEventListener("mousemove", onMouseMove);
         document.removeEventListener("mouseup", onMouseUp);
     }
 
     function onMouseDown(event){
-
         selectSquare(square);
-
         event.preventDefault();
         event.stopPropagation();
         isDragging = true;
@@ -173,11 +186,67 @@ function makeDraggable (square){
         document.addEventListener("mouseup", onMouseUp);
     }
         
-    square.addEventListener("mousedown", onMouseDown)
+    square.removeEventListener("mousedown", square._oldMouseDown);
+    square.addEventListener("mousedown", onMouseDown);
+    square._oldMouseDown = onMouseDown;
 }
 
-makeDraggable(square1);
-makeDraggable(square2);
+function getCenter(square){
+    const left = parseFloat(square.style.left);
+    const top = parseFloat(square.style.top);
+
+    return {
+        x: left + 40,
+        y: top + 40
+    };
+}
+function distance(a, b){
+    return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+const SNAP_DISTANCE = 100;
+
+function tryStick(a,b){
+
+    if(isStuck) return;
+
+    const d = distance(getCenter(a), getCenter(b));
+
+    if (d < SNAP_DISTANCE){
+        stickSquares(a, b);
+    }
+}
+
+let group = null;
+
+function stickSquares(a,b){
+
+    const aLeft = parseFloat(a.style.left);
+    const aTop = parseFloat(a.style.top);
+
+    const bLeft = parseFloat(b.style.left);
+    const bTop = parseFloat(b.style.top);
+
+    const dx = bLeft - aLeft;
+    const dy = bTop - aTop;
+
+    if(Math.abs(dx) > Math.abs(dy)){
+        b.style.left = (aLeft + Math.sign(dx)*80) + "px";
+        b.style.top = aTop + "px";
+    }else{
+        b.style.top = (aTop + Math.sign(dy)*80) + "px";
+        b.style.left = aLeft + "px";
+    }
+
+    group = {
+        leader:a,
+        follower:b,
+        offsetX: parseFloat(b.style.left)-aLeft,
+        offsetY: parseFloat(b.style.top)-aTop
+    };
+
+    isStuck = true;
+}
 
 function selectSquare(square){
     square1.style.boxShadow = "inset 0 0 0 2px rgba(30, 30, 30, 1)";
@@ -191,6 +260,39 @@ function selectSquare(square){
         selectedSquare = null;
     }
 }
+
+function detachSquares(){
+
+    if(!group) return;
+
+    const {leader, follower} = group;
+
+    group = null;
+    isStuck = false;
+
+    const angle = Math.random()*Math.PI*2;
+
+    const distance = 120;
+
+    leader.style.left =
+        parseFloat(leader.style.left) +
+        Math.cos(angle)*distance + "px";
+
+    leader.style.top =
+        parseFloat(leader.style.top) +
+        Math.sin(angle)*distance + "px";
+
+    follower.style.left =
+        parseFloat(follower.style.left) -
+        Math.cos(angle)*distance + "px";
+
+    follower.style.top =
+        parseFloat(follower.style.top) -
+        Math.sin(angle)*distance + "px";
+}
+
+makeDraggable(square1);
+makeDraggable(square2);
 
 square1.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -206,14 +308,15 @@ container.addEventListener("click", () => {
     selectSquare(null);
 })
 
-colorBtn.addEventListener("click", ()=>{
+document.getElementById("colorPickerSquare").addEventListener("input", (e)=>{
     if (selectedSquare){
-        const newColor = colorPicker.value;
-        selectedSquare.style.backgroundColor = newColor;
+        selectedSquare.style.backgroundColor = e.target.value;
     } else {
-        alert("Сначала выдели квадрат")
+        alert("Сначала выдели квадрат");
     }
-})
+});
+
+detachBtn.addEventListener("click", detachSquares)
         </script>
     </div>
 </body>
