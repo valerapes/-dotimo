@@ -126,10 +126,86 @@
             let isStuck = false;
             let group = null;
 
+            function clamp(value, min, max) {
+                return Math.min(Math.max(value, min), max);
+            }
+
+            function getDragBounds(square) {
+                const containerRect = container.getBoundingClientRect();
+                const squareRect = square.getBoundingClientRect();
+
+                const bounds = {
+                    minX: 0,
+                    maxX: containerRect.width - squareRect.width,
+                    minY: 0,
+                    maxY: containerRect.height - squareRect.height
+                };
+
+                if (!group) {
+                    return bounds;
+                }
+
+                if (square === group.leader) {
+                    bounds.minX = Math.max(bounds.minX, -group.offsetX);
+                    bounds.maxX = Math.min(bounds.maxX, bounds.maxX - group.offsetX);
+                    bounds.minY = Math.max(bounds.minY, -group.offsetY);
+                    bounds.maxY = Math.min(bounds.maxY, bounds.maxY - group.offsetY);
+                } else if (square === group.follower) {
+                    bounds.minX = Math.max(bounds.minX, group.offsetX);
+                    bounds.maxX = Math.min(bounds.maxX, bounds.maxX + group.offsetX);
+                    bounds.minY = Math.max(bounds.minY, group.offsetY);
+                    bounds.maxY = Math.min(bounds.maxY, bounds.maxY + group.offsetY);
+                }
+
+                return bounds;
+            }
+
+            function keepPairInBounds(a, b) {
+                const containerRect = container.getBoundingClientRect();
+                const squareRect = a.getBoundingClientRect();
+
+                const minX = 0;
+                const maxX = containerRect.width - squareRect.width;
+                const minY = 0;
+                const maxY = containerRect.height - squareRect.height;
+
+                let shiftX = 0;
+                let shiftY = 0;
+
+                const aX = parseFloat(a.style.left);
+                const bX = parseFloat(b.style.left);
+                const aY = parseFloat(a.style.top);
+                const bY = parseFloat(b.style.top);
+
+                const pairMinX = Math.min(aX, bX);
+                const pairMaxX = Math.max(aX, bX);
+                const pairMinY = Math.min(aY, bY);
+                const pairMaxY = Math.max(aY, bY);
+
+                if (pairMinX < minX) {
+                    shiftX = minX - pairMinX;
+                } else if (pairMaxX > maxX) {
+                    shiftX = maxX - pairMaxX;
+                }
+
+                if (pairMinY < minY) {
+                    shiftY = minY - pairMinY;
+                } else if (pairMaxY > maxY) {
+                    shiftY = maxY - pairMaxY;
+                }
+
+                if (shiftX || shiftY) {
+                    a.style.left = aX + shiftX + "px";
+                    b.style.left = bX + shiftX + "px";
+                    a.style.top = aY + shiftY + "px";
+                    b.style.top = bY + shiftY + "px";
+                }
+            }
+
             function makeDraggable(square) {
                 let isDragging = false;
+                let startMouseX = 0, startMouseY = 0;
                 let startX = 0, startY = 0;
-                let startLeft = 0, startTop = 0;
 
                 function getOtherSquare() {
                     return (square === square1) ? square2 : square1;
@@ -138,25 +214,19 @@
                 function onMouseMove(event) {
                     if (!isDragging) return;
 
-                    const dx = event.clientX - startX;
-                    const dy = event.clientY - startY;
+                    const dx = event.clientX - startMouseX;
+                    const dy = event.clientY - startMouseY;
 
-                    let newLeft = startLeft + dx;
-                    let newTop = startTop + dy;
+                    let newX = startX + dx;
+                    let newY = startY + dy;
 
-                    const containerRect = container.getBoundingClientRect();
-                    const squareRect = square.getBoundingClientRect();
+                    const bounds = getDragBounds(square);
 
-                    const minLeft = 0;
-                    const maxLeft = containerRect.width - squareRect.width;
-                    const minTop = 0;
-                    const maxTop = containerRect.height - squareRect.height;
+                    newX = clamp(newX, bounds.minX, bounds.maxX);
+                    newY = clamp(newY, bounds.minY, bounds.maxY);
 
-                    newLeft = Math.min(Math.max(newLeft, minLeft), maxLeft);
-                    newTop = Math.min(Math.max(newTop, minTop), maxTop);
-
-                    square.style.left = newLeft + "px";
-                    square.style.top = newTop + "px";
+                    square.style.left = newX + "px";
+                    square.style.top = newY + "px";
 
                     const otherSquare = getOtherSquare();
 
@@ -164,22 +234,22 @@
                         tryStick(square, otherSquare);
                         return
                     }
-                    
+
                     if (square === group.leader) {
 
-                        const followerLeft = newLeft + group.offsetX;
-                        const followerTop = newTop + group.offsetY;
+                        const followerX = newX + group.offsetX;
+                        const followerY = newY + group.offsetY;
 
-                        group.follower.style.left = followerLeft + "px";
-                        group.follower.style.top = followerTop + "px";
+                        group.follower.style.left = followerX + "px";
+                        group.follower.style.top = followerY + "px";
 
                     } else if (square === group.follower) {
 
-                        const leaderLeft = newLeft - group.offsetX;
-                        const leaderTop = newTop - group.offsetY;
+                        const leaderX = newX - group.offsetX;
+                        const leaderY = newY - group.offsetY;
 
-                        group.leader.style.left = leaderLeft + "px";
-                        group.leader.style.top = leaderTop + "px";
+                        group.leader.style.left = leaderX + "px";
+                        group.leader.style.top = leaderY + "px";
                     }
 
                 }
@@ -201,13 +271,13 @@
                     event.stopPropagation();
                     isDragging = true;
 
-                    startX = event.clientX;
-                    startY = event.clientY;
+                    startMouseX = event.clientX;
+                    startMouseY = event.clientY;
 
                     const left = getComputedStyle(square).left;
                     const top = getComputedStyle(square).top;
-                    startLeft = parseFloat(left) || 0;
-                    startTop = parseFloat(top) || 0;
+                    startX = parseFloat(left) || 0;
+                    startY = parseFloat(top) || 0;
 
                     square.style.cursor = "grabbing";
 
@@ -243,29 +313,30 @@
             }
 
             function stickSquares(a, b) {
+                const aX = parseFloat(a.style.left);
+                const aY = parseFloat(a.style.top);
 
-                const aLeft = parseFloat(a.style.left);
-                const aTop = parseFloat(a.style.top);
+                const bX = parseFloat(b.style.left);
+                const bY = parseFloat(b.style.top);
 
-                const bLeft = parseFloat(b.style.left);
-                const bTop = parseFloat(b.style.top);
-
-                const dx = bLeft - aLeft;
-                const dy = bTop - aTop;
+                const dx = bX - aX;
+                const dy = bY - aY;
 
                 if (Math.abs(dx) > Math.abs(dy)) {
-                    b.style.left = (aLeft + Math.sign(dx) * 80) + "px";
-                    b.style.top = aTop + "px";
+                    b.style.left = (aX + Math.sign(dx) * 80) + "px";
+                    b.style.top = aY + "px";
                 } else {
-                    b.style.top = (aTop + Math.sign(dy) * 80) + "px";
-                    b.style.left = aLeft + "px";
+                    b.style.top = (aY + Math.sign(dy) * 80) + "px";
+                    b.style.left = aX + "px";
                 }
+
+                keepPairInBounds(a, b);
 
                 group = {
                     leader: a,
                     follower: b,
-                    offsetX: parseFloat(b.style.left) - aLeft,
-                    offsetY: parseFloat(b.style.top) - aTop
+                    offsetX: parseFloat(b.style.left) - parseFloat(a.style.left),
+                    offsetY: parseFloat(b.style.top) - parseFloat(a.style.top)
                 };
 
                 isStuck = true;
@@ -327,7 +398,7 @@
                 selectSquare(square2);
             })
 
-            window.addEventListener("click", () => {
+            container.addEventListener("click", () => {
                 selectSquare(null);
             })
 
