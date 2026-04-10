@@ -120,7 +120,7 @@
             const square2 = document.getElementById("square2");
             const container = document.getElementById("container");
             const detachBtn = document.getElementById("detachBtn");
-            const SNAP_DISTANCE = 120;
+            const SNAP_DISTANCE = 100;
             
             let selectedSquare = null;
             let isStuck = false;
@@ -341,10 +341,10 @@
 
                 if (Math.abs(dx) > Math.abs(dy)) {
                     b.style.left = (aX + Math.sign(dx) * 80) + "px";
-                    b.style.top = aY + "px";
+                    b.style.top = aY + dy +"px";
                 } else {
                     b.style.top = (aY + Math.sign(dy) * 80) + "px";
-                    b.style.left = aX + "px";
+                    b.style.left = aX + dx + "px";
                 }
 
                 keepPairInBounds(a, b);
