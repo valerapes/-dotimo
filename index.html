@@ -20,7 +20,7 @@
             position: relative;
             width: 800px;
             height: 600px;
-            box-shadow: 0 0 5px 5px #5a5959;
+            box-shadow: 0 0 5px 5px #8a8a8a;
             background-color: white;
             overflow: hidden;
         }
@@ -121,10 +121,11 @@
             const container = document.getElementById("container");
             const detachBtn = document.getElementById("detachBtn");
             const SNAP_DISTANCE = 100;
-
+            
             let selectedSquare = null;
             let isStuck = false;
             let group = null;
+
 
             function clamp(value, min, max) {
                 return Math.min(Math.max(value, min), max);
@@ -365,24 +366,36 @@
                 isStuck = false;
 
                 const angle = Math.random() * Math.PI * 2;
-
                 const distance = 120;
 
-                leader.style.left =
-                    parseFloat(leader.style.left) +
-                    Math.cos(angle) * distance + "px";
+                let leaderX = parseFloat(leader.style.left);
+                let leaderY = parseFloat(leader.style.top);
+                let followerX = parseFloat(follower.style.left);
+                let followerY = parseFloat(follower.style.top);
 
-                leader.style.top =
-                    parseFloat(leader.style.top) +
-                    Math.sin(angle) * distance + "px";
+                let newLeaderX = leaderX + Math.cos(angle) * distance;
+                let newLeaderY = leaderY + Math.sin(angle) * distance;
+                let newFollowerX = followerX - Math.cos(angle) * distance;
+                let newFollowerY = followerY - Math.sin(angle) * distance;
 
-                follower.style.left =
-                    parseFloat(follower.style.left) -
-                    Math.cos(angle) * distance + "px";
+                const containerRect = container.getBoundingClientRect();
+                const leaderRect = leader.getBoundingClientRect();
+                const followerRect = follower.getBoundingClientRect();
 
-                follower.style.top =
-                    parseFloat(follower.style.top) -
-                    Math.sin(angle) * distance + "px";
+                const maxLeaderX = containerRect.width - leaderRect.width;
+                const maxLeaderY = containerRect.height - leaderRect.height;
+                const maxFollowerX = containerRect.width - followerRect.width;
+                const maxFollowerY = containerRect.height - followerRect.height;
+
+                newLeaderX = clamp(newLeaderX, 0, maxLeaderX);
+                newLeaderY = clamp(newLeaderY, 0, maxLeaderY);
+                newFollowerX = clamp(newFollowerX, 0, maxFollowerX);
+                newFollowerY = clamp(newFollowerY, 0, maxFollowerY);
+
+                leader.style.left = newLeaderX + "px";
+                leader.style.top = newLeaderY + "px";
+                follower.style.left = newFollowerX + "px";
+                follower.style.top = newFollowerY + "px";
             }
 
             makeDraggable(square1);
@@ -414,5 +427,4 @@
         </script>
     </div>
 </body>
-
 </html>
